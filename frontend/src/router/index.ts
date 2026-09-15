@@ -289,7 +289,7 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/help',
+    path: '/help/:slug?',
     name: 'Help',
     component: () => import('@/views/user/HelpView.vue'),
     meta: {
