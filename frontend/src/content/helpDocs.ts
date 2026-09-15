@@ -3,16 +3,11 @@ export interface HelpDocument {
   title: string
   description: string
   category: string
-  sourceUrl: string
   markdown: string
 }
 
-function trimTrailingSlash(value: string): string {
-  return value.replace(/\/+$/, '')
-}
-
-export function buildHelpDocuments(siteOrigin: string): HelpDocument[] {
-  const origin = trimTrailingSlash(siteOrigin)
+export function buildHelpDocuments(): HelpDocument[] {
+  const origin = 'http://192.168.3.53:8080'
   const openAiBaseUrl = `${origin}/v1`
 
   return [
@@ -21,11 +16,10 @@ export function buildHelpDocuments(siteOrigin: string): HelpDocument[] {
       title: 'Claude Code 快速上手',
       description: '安装 Claude Code，并通过本站 API 密钥完成连接。',
       category: '配置指南',
-      sourceUrl: 'https://docs.micuapi.ai/claude-code',
       markdown: `
 # Claude Code 快速上手
 
-本页介绍如何安装 Claude Code，并将它连接到当前 Sub2API 站点。开始前，请先在本站的 **API 密钥** 页面创建一个密钥，再到 **可用渠道** 页面确认可用模型。
+本页介绍如何安装 Claude Code，并将它连接到 API Transit station。开始前，请先在本站的 **API 密钥** 页面创建一个密钥，再到 **可用渠道** 页面确认可用模型。
 
 > API 密钥只保存在你自己的设备中。截图、教程或聊天记录中请统一写成 \`sk-xxx\`，不要粘贴真实密钥。
 
@@ -128,10 +122,6 @@ claude
 ### 模型不可用
 
 到 **可用渠道** 页面核对模型名和分组权限。已有会话可能保留旧模型，切换后新建会话再试。
-
----
-
-参考界面与主题：[micuapi Claude Code 文档](https://docs.micuapi.ai/claude-code)。本文内容已按当前 Sub2API 部署重新整理。
 `,
     },
     {
@@ -139,7 +129,6 @@ claude
       title: 'Codex CLI 快速上手',
       description: '安装 Codex CLI，配置 Responses API，并验证命令行会话。',
       category: '配置指南',
-      sourceUrl: 'https://docs.micuapi.ai/codex',
       markdown: `
 # Codex CLI 快速上手
 
@@ -182,19 +171,19 @@ Codex 的配置目录是 \`~/.codex\`。Windows 对应 \`C:\\Users\\<用户名>\
 创建或编辑 \`~/.codex/config.toml\`。将 \`你的模型名\` 替换成本站 **可用渠道** 页面显示的完整模型名：
 
 \`\`\`toml
-model_provider = "sub2api"
+model_provider = "OpenAI"
 model = "你的模型名"
 model_reasoning_effort = "high"
 disable_response_storage = true
 
-[model_providers.sub2api]
-name = "Sub2API"
+[model_providers.OpenAI]
+name = "OpenAI"
 base_url = "${openAiBaseUrl}"
 wire_api = "responses"
 requires_openai_auth = true
 \`\`\`
 
-如果文件里已有其他设置，请合并这些字段。\`model_provider\`、\`model\` 等字段应位于 TOML 顶层，不要误放到 \`[model_providers.sub2api]\` 下面。
+如果文件里已有其他设置，请合并这些字段。\`model_provider\`、\`model\` 等字段应位于 TOML 顶层，不要误放到 \`[model_providers.OpenAI]\` 下面。
 
 ### 配置 auth.json
 
@@ -244,10 +233,6 @@ codex
 ### 配置文件没有生效
 
 运行 Codex 的系统用户必须与配置文件所属用户一致。容器、远程终端和本机可能分别拥有不同的主目录。
-
----
-
-参考界面与主题：[micuapi Codex CLI 文档](https://docs.micuapi.ai/codex)。本文内容已按当前 Sub2API 部署重新整理。
 `,
     },
     {
@@ -255,7 +240,6 @@ codex
       title: 'Codex 桌面端配置',
       description: '为 Codex 桌面应用写入自定义供应商配置并排查会话问题。',
       category: 'Codex',
-      sourceUrl: 'https://docs.micuapi.ai/codex/desktop',
       markdown: `
 # Codex 桌面端配置
 
@@ -296,13 +280,13 @@ codex
 将 \`你的模型名\` 替换为本站显示的真实模型名：
 
 \`\`\`toml
-model_provider = "sub2api"
+model_provider = "OpenAI"
 model = "你的模型名"
 model_reasoning_effort = "high"
 disable_response_storage = true
 
-[model_providers.sub2api]
-name = "Sub2API"
+[model_providers.OpenAI]
+name = "OpenAI"
 base_url = "${openAiBaseUrl}"
 wire_api = "responses"
 requires_openai_auth = true
@@ -333,7 +317,7 @@ requires_openai_auth = true
 按以下顺序检查：
 
 1. 确认 \`base_url\` 是 \`${openAiBaseUrl}\`。
-2. 确认 \`model_provider = "sub2api"\` 位于 TOML 顶层。
+2. 确认 \`model_provider = "OpenAI"\` 位于 TOML 顶层。
 3. 确认 \`auth.json\` 中只有有效的 JSON 和正确密钥。
 4. 在系统任务管理器中完全结束 Codex，再重新打开。
 5. 新建会话验证，避免旧会话继续使用原供应商。
@@ -345,10 +329,6 @@ requires_openai_auth = true
 ### 审批操作没有执行
 
 查看应用中的审批模式和项目权限，确认当前目录受信任。模型只能提出工具调用，最终是否执行仍由桌面端的权限设置决定。
-
----
-
-参考界面与主题：[micuapi Codex 桌面端文档](https://docs.micuapi.ai/codex/desktop)。本文内容已按当前 Sub2API 部署重新整理。
 `,
     },
   ]

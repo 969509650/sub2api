@@ -18,7 +18,7 @@
           <div class="docs-brand-icon"><Icon name="book" /></div>
           <div>
             <strong>文档中心</strong>
-            <span>Sub2API 使用教程</span>
+            <span>API Transit station</span>
           </div>
           <button class="docs-sidebar-close" type="button" title="关闭文档导航" @click="mobileNavOpen = false">
             <Icon name="x" />
@@ -45,11 +45,6 @@
             </RouterLink>
           </section>
         </nav>
-
-        <a class="docs-source-link" :href="activeDocument.sourceUrl" target="_blank" rel="noopener noreferrer">
-          <Icon name="externalLink" size="sm" />
-          <span>查看参考文档</span>
-        </a>
       </aside>
 
       <main ref="articleScroller" class="docs-main" @scroll="updateActiveHeading">
@@ -141,7 +136,7 @@ interface HeadingItem {
 
 const route = useRoute()
 const router = useRouter()
-const documents = buildHelpDocuments(window.location.origin)
+const documents = buildHelpDocuments()
 const headings = ref<HeadingItem[]>([])
 const activeHeadingId = ref('')
 const mobileNavOpen = ref(false)
@@ -308,8 +303,6 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKeydown))
 .docs-nav a:hover { background: #eef2f7; color: #111827; }
 .docs-nav a.active { background: #e8efff; color: #1d4ed8; font-weight: 600; }
 .docs-nav a svg { flex: none; }
-.docs-source-link { display: flex; align-items: center; gap: 8px; margin-top: 18px; border-top: 1px solid #e5e7eb; padding: 16px 8px 2px; color: #6b7280; font-size: 12px; }
-.docs-source-link:hover { color: #2563eb; }
 .docs-main { position: relative; min-width: 0; overflow-y: auto; scroll-behavior: smooth; }
 .docs-article { width: min(100% - 64px, 760px); margin: 0 auto; padding: 54px 0 30px; color: #374151; font-size: 15px; line-height: 1.8; }
 .docs-article :deep(h1) { margin: 0 0 16px; color: #111827; font-size: 32px; font-weight: 750; line-height: 1.25; }
@@ -362,29 +355,34 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKeydown))
 .docs-search-results strong { color: #111827; font-size: 14px; }
 .docs-search-results small { margin-top: 3px; overflow-wrap: anywhere; color: #6b7280; font-size: 12px; }
 .docs-empty-search { padding: 34px 12px; text-align: center; color: #6b7280; font-size: 13px; }
-:global(.dark) .docs-shell { border-color: #303846; background: #111827; color: #d1d5db; }
-:global(.dark) .docs-sidebar { border-color: #303846; background: #0d1420; }
-:global(.dark) .docs-brand strong, :global(.dark) .docs-nav a:hover, :global(.dark) .docs-outline h2 { color: #f3f4f6; }
-:global(.dark) .docs-brand span, :global(.dark) .docs-nav h2, :global(.dark) .docs-source-link { color: #8f9bad; }
-:global(.dark) .docs-search-button { border-color: #374151; background: #172033; color: #9ca3af; }
-:global(.dark) .docs-nav a { color: #aeb8c8; }
-:global(.dark) .docs-nav a:hover { background: #172033; }
-:global(.dark) .docs-nav a.active { background: #172554; color: #93c5fd; }
-:global(.dark) .docs-source-link, :global(.dark) .docs-article :deep(h2), :global(.dark) .docs-article :deep(hr), :global(.dark) .docs-pagination, :global(.dark) .docs-outline nav { border-color: #303846; }
-:global(.dark) .docs-article { color: #c5cedb; }
-:global(.dark) .docs-article :deep(h1), :global(.dark) .docs-article :deep(h2), :global(.dark) .docs-article :deep(h3), :global(.dark) .docs-article :deep(strong) { color: #f8fafc; }
-:global(.dark) .docs-article :deep(h1 + p), :global(.dark) .docs-outline a, :global(.dark) .docs-pagination span { color: #94a3b8; }
-:global(.dark) .docs-article :deep(blockquote) { border-color: #60a5fa; background: #172554; color: #bfdbfe; }
-:global(.dark) .docs-article :deep(code) { background: #202b3b; color: #fda4af; }
-:global(.dark) .docs-article :deep(pre) { border-color: #374151; background: #080d16; }
-:global(.dark) .docs-article :deep(pre code) { background: transparent; color: #e5e7eb; }
-:global(.dark) .docs-article :deep(th), :global(.dark) .docs-article :deep(td) { border-color: #3b4657; }
-:global(.dark) .docs-article :deep(th) { background: #202b3b; color: #f3f4f6; }
-:global(.dark) .docs-pagination a { border-color: #374151; }
-:global(.dark) .docs-search-dialog { border-color: #374151; background: #111827; }
-:global(.dark) .docs-search-input-wrap { border-color: #374151; }
-:global(.dark) .docs-search-input-wrap input, :global(.dark) .docs-search-results strong { color: #f3f4f6; }
-:global(.dark) .docs-search-results a:hover { background: #1f2937; }
+.dark .docs-shell { border-color: #303846; background: #111827; color: #d1d5db; }
+.dark .docs-sidebar { border-color: #303846; background: #0d1420; }
+.dark .docs-brand strong, .dark .docs-nav a:hover, .dark .docs-outline h2 { color: #f3f4f6; }
+.dark .docs-brand span, .dark .docs-nav h2 { color: #8f9bad; }
+.dark .docs-search-button { border-color: #374151; background: #172033; color: #9ca3af; }
+.dark .docs-nav a { color: #aeb8c8; }
+.dark .docs-nav a:hover { background: #172033; }
+.dark .docs-nav a.active { background: #172554; color: #93c5fd; }
+.dark .docs-article :deep(h2), .dark .docs-article :deep(hr), .dark .docs-pagination, .dark .docs-outline nav { border-color: #303846; }
+.dark .docs-article { color: #c5cedb; }
+.dark .docs-article :deep(h1), .dark .docs-article :deep(h2), .dark .docs-article :deep(h3), .dark .docs-article :deep(strong) { color: #f8fafc; }
+.dark .docs-article :deep(h1 + p), .dark .docs-outline a, .dark .docs-pagination span { color: #94a3b8; }
+.dark .docs-article :deep(a), .dark .docs-pagination strong, .dark .docs-outline a:hover, .dark .docs-outline a.active { color: #93c5fd; }
+.dark .docs-outline a.active { border-left-color: #93c5fd; }
+.dark .docs-article :deep(blockquote) { border-color: #60a5fa; background: #172554; color: #bfdbfe; }
+.dark .docs-article :deep(code) { background: #202b3b; color: #fda4af; }
+.dark .docs-article :deep(pre) { border-color: #374151; background: #080d16; }
+.dark .docs-article :deep(pre code) { background: transparent; color: #e5e7eb; }
+.dark .docs-article :deep(th), .dark .docs-article :deep(td) { border-color: #3b4657; }
+.dark .docs-article :deep(th) { background: #202b3b; color: #f3f4f6; }
+.dark .docs-pagination a { border-color: #374151; }
+.dark .docs-search-dialog { border-color: #374151; background: #111827; }
+.dark .docs-search-input-wrap { border-color: #374151; }
+.dark .docs-search-input-wrap input, .dark .docs-search-results strong { color: #f3f4f6; }
+.dark .docs-search-results a { color: #c5cedb; }
+.dark .docs-search-input-wrap, .dark .docs-search-input-wrap button, .dark .docs-search-results a > svg, .dark .docs-search-results small, .dark .docs-empty-search { color: #94a3b8; }
+.dark .docs-search-input-wrap .docs-search-close { border-color: #374151; }
+.dark .docs-search-results a:hover { background: #1f2937; }
 @media (max-width: 1180px) {
   .docs-shell { grid-template-columns: 220px minmax(0, 1fr); }
   .docs-outline { display: none; }
@@ -405,8 +403,8 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKeydown))
   .docs-pagination { width: calc(100% - 40px); grid-template-columns: 1fr; margin-bottom: 32px; }
   .docs-pagination > span { display: none; }
   .docs-pagination a.next { text-align: left; }
-  :global(.dark) .docs-mobile-header { border-color: #303846; }
-  :global(.dark) .docs-mobile-title { color: #f3f4f6; }
-  :global(.dark) .docs-icon-button { color: #cbd5e1; }
+  .dark .docs-mobile-header { border-color: #303846; }
+  .dark .docs-mobile-title { color: #f3f4f6; }
+  .dark .docs-icon-button, .dark .docs-sidebar-close { color: #cbd5e1; }
 }
 </style>
