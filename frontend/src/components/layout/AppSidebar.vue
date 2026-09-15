@@ -605,6 +605,12 @@ const OrderListIcon = {
     )
 }
 
+const HelpIcon = {
+  render: () => h('svg', { fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': '1.5' }, [
+    h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M9.879 7.519c.879-1.038 2.222-1.519 3.621-1.519 2.485 0 4.5 1.567 4.5 3.5 0 1.32-.952 2.47-2.354 3.08-.77.336-1.146.612-1.146 1.42v.25m0 3h.008M4.5 19.5h15a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5h-15A1.5 1.5 0 003 6v12a1.5 1.5 0 001.5 1.5z' })
+  ])
+}
+
 const ChevronDoubleRightIcon = {
   render: () =>
     h(
@@ -720,6 +726,7 @@ function buildSelfNavItems(withDashboard: boolean): NavItem[] {
     { path: '/redeem', label: t('nav.redeem'), icon: GiftIcon, hideInSimpleMode: true },
     { path: '/affiliate', label: t('nav.affiliate'), icon: UsersIcon, hideInSimpleMode: true, featureFlag: flagAffiliate },
     { path: '/profile', label: t('nav.profile'), icon: UserIcon },
+    { path: '/help', label: '教程', icon: HelpIcon },
     ...customMenuItemsForUser.value.map((item): NavItem => ({
       path: `/custom/${item.id}`,
       label: item.label,

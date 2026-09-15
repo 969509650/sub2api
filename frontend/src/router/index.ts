@@ -289,6 +289,16 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/help',
+    name: 'Help',
+    component: () => import('@/views/user/HelpView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: 'Help Documentation'
+    }
+  },
+  {
     path: '/subscriptions',
     name: 'Subscriptions',
     component: () => import('@/views/user/SubscriptionsView.vue'),
