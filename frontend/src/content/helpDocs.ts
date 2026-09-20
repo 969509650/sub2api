@@ -1,25 +1,74 @@
 export interface HelpDocument {
   slug: string
   title: string
-  description: string
-  category: string
   markdown: string
 }
 
 export function buildHelpDocuments(): HelpDocument[] {
   const origin = 'http://192.168.3.53:8080'
-  const openAiBaseUrl = `${origin}/v1`
 
   return [
     {
-      slug: 'claude-code',
-      title: 'Claude Code 快速上手',
-      description: '安装 Claude Code，并通过本站 API 密钥完成连接。',
-      category: '配置指南',
+      slug: 'cherry-studio',
+      title: 'Cherry Studio配置(推荐)',
       markdown: `
-# Claude Code 快速上手
+# Cherry Studio配置(推荐)
 
-本页介绍如何安装 Claude Code，并将它连接到 API Transit station。开始前，请先在本站的 **API 密钥** 页面创建一个密钥，再到 **可用渠道** 页面确认可用模型。
+本页介绍如何把 ayaxAPI 添加为 Cherry Studio 的自定义 AI 服务商。开始前，请先在本站的 **API 密钥** 页面创建一个密钥。
+
+> 示例中的 \`sk-xxx\` 是占位符。真实密钥只应填写在你自己的设备中，请勿粘贴到截图、教程或聊天记录里。
+
+## Cherry Studio介绍
+
+Cherry Studio 是一款集多模型对话、智能体 Agent、知识库管理、AI 绘画、翻译等功能于一体的全能 AI 工作台。小白友好，文档完善，还支持多种免费 Web 端 AI 工具，无需切换浏览器即可直接使用；将智能体派驻到飞书 / 微信 / Telegram / Discord 等 IM 平台担任群机器人；让智能体按计划自动运行（如每日新闻简报、每周汇总）等功能。
+
+具体功能模块以及详细用法可以访问官网查看更多教程，本文只对如何接入模型做简短介绍。
+
+https://docs.cherryai.com.cn/
+
+## 添加自定义服务商
+
+1. 打开 Cherry Studio，首次打开选择登录方式时可选择右上角的 **稍后设置**。进入 APP 后，点击左侧导航栏中的 **设置**（齿轮图标）。
+2. 在设置页面中选择 **模型服务**。
+3. 点击服务商列表下方的 **+ 添加服务商**，打开添加自定义提供商窗口。
+4. 按下表填写服务商信息：
+
+| 配置项 | 值 |
+| --- | --- |
+| 提供商名称 | \`ayaxAPI\` |
+| API 密钥 | 本站创建的密钥，例如 \`sk-xxx\` |
+| OpenAI Base URL | \`${origin}\` |
+
+Cherry Studio 默认可配置 OpenAI 和 Anthropic 端点；在 **更多设置** 中还可以看到 OpenAI Responses、Gemini、图像生成及图像编辑等端点。连接本站时只需配置上表中的 OpenAI 端点，其他端点可保持为空。
+
+> API 地址和密钥必须配套使用。请完整填写 \`${origin}\`，不要再追加 \`/chat/completions\` 等具体接口路径。
+
+5. 检查填写内容，然后点击 **添加**。在弹出的模型选择界面中增加想要使用的模型，点击 **添加所选模型**；在随后弹出的界面中点击 **检测并启用**，等待检测完成即可。
+
+> **注意：** 如果检测失败，可以关闭界面，在新增的服务商中同步模型，然后重新选择模型，手动点击 API 密钥右侧的 **检测**。检测成功后即可正常使用。
+
+## 配置服务商
+
+添加完成后，在模型服务列表中打开刚创建的 **ayaxAPI**：
+
+1. 确认页面右上角的服务商开关已经开启；启用后，列表右侧会显示绿色圆点。
+2. 点击 **获取模型列表**，让 Cherry Studio 从本站读取可用模型。
+3. 不需要的模型可以通过模型右侧的 **-** 删除；模型名称、类型和价格等信息可在模型设置中调整。
+
+## 开始使用
+
+返回 Cherry Studio 的聊天界面，新建一个会话，然后选择 **ayaxAPI** 及刚添加的模型。发送一条简单消息；能够正常收到回复，且没有认证、模型或连接错误，即表示配置成功。
+
+如果返回 401，请重新复制本站密钥并检查是否带有空格或换行。
+`,
+    },
+    {
+      slug: 'claude-code',
+      title: 'Claude Code Cli快速上手',
+      markdown: `
+# Claude Code Cli快速上手
+
+本页介绍如何安装 Claude Code，并将它连接到 ayaxAPI。开始前，请先在本站的 **API 密钥** 页面创建一个密钥。
 
 > API 密钥只保存在你自己的设备中。截图、教程或聊天记录中请统一写成 \`sk-xxx\`，不要粘贴真实密钥。
 
@@ -81,7 +130,8 @@ export ANTHROPIC_AUTH_TOKEN="sk-xxx"
 
 ### 使用 CC Switch
 
-如果你已经使用 CC Switch，可以新建一个 Claude 供应商，将 API 地址设为 \`${origin}\`，填入本站密钥并启用。配置后请完全退出 Claude Code，再重新打开，避免旧进程继续读取原来的环境变量。
+可访问:https://ccswitch.io/zh/docs?section=getting-started&item=quickstart<br>
+查看详细教程，手动配置和使用CC Switch选其一即可
 
 ## 步骤三：启动
 
@@ -96,7 +146,7 @@ claude
 
 ## 模型选择
 
-模型能否使用取决于账号所属分组。先在本站 **可用渠道** 页面查看完整模型名，再通过 Claude Code 的 \`/model\` 命令选择。不要凭示例猜测模型名。
+模型能否使用取决于账号所属分组。通过 Claude Code 的 \`/model\` 命令选择模型，不要凭示例猜测模型名。
 
 ## 常用命令
 
@@ -121,18 +171,16 @@ claude
 
 ### 模型不可用
 
-到 **可用渠道** 页面核对模型名和分组权限。已有会话可能保留旧模型，切换后新建会话再试。
+已有会话可能保留旧模型，切换后新建会话再试。
 `,
     },
     {
       slug: 'codex',
       title: 'Codex CLI 快速上手',
-      description: '安装 Codex CLI，配置 Responses API，并验证命令行会话。',
-      category: '配置指南',
       markdown: `
 # Codex CLI 快速上手
 
-本页介绍 Codex CLI 的安装和本站 API 配置。开始前，请在本站 **API 密钥** 页面创建密钥，并在 **可用渠道** 页面复制一个支持 Responses API 的完整模型名。
+本页介绍 Codex CLI 的安装和本站 API 配置。开始前，请在本站 **API 密钥** 页面创建密钥。
 
 > 示例中的 \`sk-xxx\` 是占位符。请只在本机认证文件中填写真实密钥。
 
@@ -168,7 +216,7 @@ Codex 的配置目录是 \`~/.codex\`。Windows 对应 \`C:\\Users\\<用户名>\
 
 ### 配置 config.toml
 
-创建或编辑 \`~/.codex/config.toml\`。将 \`你的模型名\` 替换成本站 **可用渠道** 页面显示的完整模型名：
+创建或编辑 \`~/.codex/config.toml\`。将 \`你的模型名\` 替换成当前配置中可用的完整模型名：
 
 \`\`\`toml
 model_provider = "OpenAI"
@@ -178,7 +226,7 @@ disable_response_storage = true
 
 [model_providers.OpenAI]
 name = "OpenAI"
-base_url = "${openAiBaseUrl}"
+base_url = "${origin}"
 wire_api = "responses"
 requires_openai_auth = true
 \`\`\`
@@ -199,7 +247,8 @@ Windows 用户在 \`C:\\Users\\<用户名>\\.codex\\auth.json\` 中写入相同�
 
 ### 使用 CC Switch
 
-也可以在 CC Switch 中选择 Codex，新建自定义供应商。API 地址填写 \`${openAiBaseUrl}\`，协议选择 Responses，保存并启用后重新打开终端。
+可访问:https://ccswitch.io/zh/docs?section=getting-started&item=quickstart<br>
+查看详细教程，手动配置和使用CC Switch选其一即可
 
 ## 步骤三：启动
 
@@ -228,7 +277,7 @@ codex
 
 ### 返回模型不存在
 
-复制本站 **可用渠道** 中的模型名，不要使用教程里的占位文字。模型权限发生变化后，应新建会话。
+使用当前配置中可用的模型名，不要使用教程里的占位文字。模型权限发生变化后，应新建会话。
 
 ### 配置文件没有生效
 
@@ -238,14 +287,12 @@ codex
     {
       slug: 'codex-desktop',
       title: 'Codex 桌面端配置',
-      description: '为 Codex 桌面应用写入自定义供应商配置并排查会话问题。',
-      category: 'Codex',
       markdown: `
 # Codex 桌面端配置
 
 本页适用于带聊天窗口和设置界面的 Codex 桌面应用。桌面端与 CLI 共用 \`.codex\` 配置目录，因此可以手动配置，也可以由 CC Switch 写入。
 
-> 配置前请在本站 **API 密钥** 页面创建密钥，并到 **可用渠道** 页面确认完整模型名。
+> 配置前请在本站 **API 密钥** 页面创建密钥。
 
 ## 安装与准备
 
@@ -262,16 +309,8 @@ codex
 
 ## 使用 CC Switch
 
-在 CC Switch 中选择 Codex，新增自定义供应商，填写以下信息：
-
-| 配置项 | 值 |
-| --- | --- |
-| API 地址 | \`${openAiBaseUrl}\` |
-| API 密钥 | 本站创建的密钥 |
-| API 协议 | Responses |
-| 模型 | 可用渠道中的完整模型名 |
-
-保存并启用配置后，完全退出 Codex 桌面应用，再重新打开。已经打开的进程不会自动重新读取所有配置。
+可访问:https://ccswitch.io/zh/docs?section=getting-started&item=quickstart<br>
+查看详细教程，手动配置和使用CC Switch选其一即可
 
 ## 手动配置
 
@@ -287,7 +326,7 @@ disable_response_storage = true
 
 [model_providers.OpenAI]
 name = "OpenAI"
-base_url = "${openAiBaseUrl}"
+base_url = "${origin}"
 wire_api = "responses"
 requires_openai_auth = true
 \`\`\`
@@ -316,7 +355,7 @@ requires_openai_auth = true
 
 按以下顺序检查：
 
-1. 确认 \`base_url\` 是 \`${openAiBaseUrl}\`。
+1. 确认 \`base_url\` 是 \`${origin}\`。
 2. 确认 \`model_provider = "OpenAI"\` 位于 TOML 顶层。
 3. 确认 \`auth.json\` 中只有有效的 JSON 和正确密钥。
 4. 在系统任务管理器中完全结束 Codex，再重新打开。
@@ -332,17 +371,4 @@ requires_openai_auth = true
 `,
     },
   ]
-}
-
-export function searchHelpDocuments(documents: HelpDocument[], query: string): HelpDocument[] {
-  const normalized = query.trim().toLocaleLowerCase()
-  if (!normalized) return documents
-
-  const terms = normalized.split(/\s+/).filter(Boolean)
-  return documents.filter((document) => {
-    const searchable = [document.title, document.description, document.category, document.markdown]
-      .join(' ')
-      .toLocaleLowerCase()
-    return terms.every((term) => searchable.includes(term))
-  })
 }

@@ -6,9 +6,7 @@
           <Icon name="menu" />
         </button>
         <span class="docs-mobile-title">文档中心</span>
-        <button class="docs-icon-button" type="button" title="搜索文档" @click="openSearch">
-          <Icon name="search" />
-        </button>
+        <span></span>
       </header>
 
       <div v-if="mobileNavOpen" class="docs-drawer-backdrop" @click="mobileNavOpen = false"></div>
@@ -18,32 +16,24 @@
           <div class="docs-brand-icon"><Icon name="book" /></div>
           <div>
             <strong>文档中心</strong>
-            <span>API Transit station</span>
+            <span>ayaxAPI</span>
           </div>
           <button class="docs-sidebar-close" type="button" title="关闭文档导航" @click="mobileNavOpen = false">
             <Icon name="x" />
           </button>
         </div>
 
-        <button class="docs-search-button" type="button" @click="openSearch">
-          <Icon name="search" size="sm" />
-          <span>搜索文档</span>
-        </button>
-
         <nav class="docs-nav" aria-label="文档导航">
-          <section v-for="group in documentGroups" :key="group.category">
-            <h2>{{ group.category }}</h2>
-            <RouterLink
-              v-for="document in group.documents"
-              :key="document.slug"
-              :to="`/help/${document.slug}`"
-              :class="{ active: document.slug === activeDocument.slug }"
-              @click="mobileNavOpen = false"
-            >
-              <Icon :name="document.slug === 'claude-code' ? 'terminal' : 'document'" size="sm" />
-              <span>{{ document.title }}</span>
-            </RouterLink>
-          </section>
+          <RouterLink
+            v-for="document in documents"
+            :key="document.slug"
+            :to="`/help/${document.slug}`"
+            :class="{ active: document.slug === activeDocument.slug }"
+            @click="mobileNavOpen = false"
+          >
+            <Icon :name="document.slug === 'claude-code' ? 'terminal' : 'document'" size="sm" />
+            <span>{{ document.title }}</span>
+          </RouterLink>
         </nav>
       </aside>
 
@@ -78,55 +68,17 @@
         </nav>
       </aside>
     </div>
-
-    <Teleport to="body">
-      <div v-if="searchOpen" class="docs-search-overlay" role="presentation" @click.self="closeSearch">
-        <section class="docs-search-dialog" role="dialog" aria-modal="true" aria-label="搜索文档">
-          <div class="docs-search-input-wrap">
-            <Icon name="search" />
-            <input
-              ref="searchInput"
-              v-model="searchQuery"
-              type="search"
-              placeholder="搜索安装、配置、错误信息..."
-              aria-label="搜索文档"
-              @keydown.esc="closeSearch"
-            />
-            <button v-if="searchQuery" type="button" title="清除搜索" @click="searchQuery = ''">
-              <Icon name="x" size="sm" />
-            </button>
-            <button type="button" class="docs-search-close" @click="closeSearch">关闭</button>
-          </div>
-          <div class="docs-search-results">
-            <p v-if="searchQuery && !searchResults.length" class="docs-empty-search">没有找到相关文档</p>
-            <RouterLink
-              v-for="document in searchResults"
-              :key="document.slug"
-              :to="`/help/${document.slug}`"
-              @click="closeSearch"
-            >
-              <Icon name="document" />
-              <span>
-                <strong>{{ document.title }}</strong>
-                <small>{{ document.description }}</small>
-              </span>
-              <Icon name="arrowRight" size="sm" />
-            </RouterLink>
-          </div>
-        </section>
-      </div>
-    </Teleport>
   </AppLayout>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import Icon from '@/components/icons/Icon.vue'
-import { buildHelpDocuments, searchHelpDocuments, type HelpDocument } from '@/content/helpDocs'
+import { buildHelpDocuments, type HelpDocument } from '@/content/helpDocs'
 
 interface HeadingItem {
   id: string
@@ -140,27 +92,16 @@ const documents = buildHelpDocuments()
 const headings = ref<HeadingItem[]>([])
 const activeHeadingId = ref('')
 const mobileNavOpen = ref(false)
-const searchOpen = ref(false)
-const searchQuery = ref('')
-const searchInput = ref<HTMLInputElement | null>(null)
 const articleElement = ref<HTMLElement | null>(null)
 const articleScroller = ref<HTMLElement | null>(null)
 
-const requestedSlug = computed(() => String(route.params.slug || 'claude-code'))
+const requestedSlug = computed(() => String(route.params.slug || documents[0].slug))
 const activeDocument = computed<HelpDocument>(() => (
   documents.find((document) => document.slug === requestedSlug.value) || documents[0]
 ))
 const activeIndex = computed(() => documents.findIndex((document) => document.slug === activeDocument.value.slug))
 const previousDocument = computed(() => documents[activeIndex.value - 1] || null)
 const nextDocument = computed(() => documents[activeIndex.value + 1] || null)
-const searchResults = computed(() => searchHelpDocuments(documents, searchQuery.value))
-const documentGroups = computed(() => {
-  const categories = [...new Set(documents.map((document) => document.category))]
-  return categories.map((category) => ({
-    category,
-    documents: documents.filter((document) => document.category === category),
-  }))
-})
 
 function headingId(text: string, index: number): string {
   const normalized = text
@@ -238,24 +179,6 @@ function updateActiveHeading() {
   activeHeadingId.value = current
 }
 
-async function openSearch() {
-  searchOpen.value = true
-  await nextTick()
-  searchInput.value?.focus()
-}
-
-function closeSearch() {
-  searchOpen.value = false
-  searchQuery.value = ''
-}
-
-function handleGlobalKeydown(event: KeyboardEvent) {
-  if ((event.ctrlKey || event.metaKey) && event.key.toLocaleLowerCase() === 'k') {
-    event.preventDefault()
-    searchOpen.value ? closeSearch() : openSearch()
-  }
-}
-
 watch(activeDocument, async () => {
   if (requestedSlug.value !== activeDocument.value.slug) {
     await router.replace(`/help/${activeDocument.value.slug}`)
@@ -267,13 +190,11 @@ watch(activeDocument, async () => {
 })
 
 onMounted(async () => {
-  window.addEventListener('keydown', handleGlobalKeydown)
   if (!route.params.slug) await router.replace(`/help/${activeDocument.value.slug}`)
   await nextTick()
   enhanceCodeBlocks()
 })
 
-onUnmounted(() => window.removeEventListener('keydown', handleGlobalKeydown))
 </script>
 
 <style scoped>
@@ -294,11 +215,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKeydown))
 .docs-brand-icon { display: flex; width: 34px; height: 34px; flex: none; align-items: center; justify-content: center; border-radius: 7px; background: #2563eb; color: #fff; }
 .docs-brand strong { display: block; font-size: 15px; color: #111827; }
 .docs-brand span { display: block; margin-top: 2px; font-size: 11px; color: #6b7280; }
-.docs-search-button { display: flex; width: 100%; align-items: center; gap: 8px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; padding: 8px 10px; color: #6b7280; font-size: 13px; text-align: left; }
-.docs-search-button:hover { border-color: #9ca3af; color: #374151; }
 .docs-nav { flex: 1; padding-top: 24px; }
-.docs-nav section + section { margin-top: 24px; }
-.docs-nav h2 { padding: 0 10px 7px; color: #6b7280; font-size: 11px; font-weight: 700; text-transform: uppercase; }
 .docs-nav a { display: flex; align-items: center; gap: 9px; border-radius: 6px; padding: 8px 10px; color: #4b5563; font-size: 13px; line-height: 1.35; }
 .docs-nav a:hover { background: #eef2f7; color: #111827; }
 .docs-nav a.active { background: #e8efff; color: #1d4ed8; font-weight: 600; }
@@ -340,26 +257,10 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKeydown))
 .docs-outline a.level-3 { padding-left: 22px; }
 .docs-outline a:hover, .docs-outline a.active { color: #2563eb; }
 .docs-outline a.active { border-left-color: #2563eb; font-weight: 600; }
-.docs-search-overlay { position: fixed; z-index: 100; inset: 0; display: flex; justify-content: center; background: rgba(17, 24, 39, .48); padding: 12vh 18px 40px; backdrop-filter: blur(2px); }
-.docs-search-dialog { width: min(100%, 620px); height: fit-content; max-height: 72vh; overflow: hidden; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; box-shadow: 0 24px 64px rgba(0, 0, 0, .22); }
-.docs-search-input-wrap { display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #e5e7eb; padding: 12px 14px; color: #6b7280; }
-.docs-search-input-wrap input { min-width: 0; flex: 1; border: 0; background: transparent; color: #111827; font-size: 15px; outline: none; }
-.docs-search-input-wrap button { color: #6b7280; font-size: 12px; }
-.docs-search-input-wrap .docs-search-close { border-left: 1px solid #e5e7eb; padding-left: 12px; }
-.docs-search-results { max-height: calc(72vh - 58px); overflow-y: auto; padding: 8px; }
-.docs-search-results a { display: flex; align-items: center; gap: 12px; border-radius: 6px; padding: 12px; color: #374151; }
-.docs-search-results a:hover { background: #f3f4f6; }
-.docs-search-results a > svg { flex: none; color: #6b7280; }
-.docs-search-results a span { min-width: 0; flex: 1; }
-.docs-search-results strong, .docs-search-results small { display: block; }
-.docs-search-results strong { color: #111827; font-size: 14px; }
-.docs-search-results small { margin-top: 3px; overflow-wrap: anywhere; color: #6b7280; font-size: 12px; }
-.docs-empty-search { padding: 34px 12px; text-align: center; color: #6b7280; font-size: 13px; }
 .dark .docs-shell { border-color: #303846; background: #111827; color: #d1d5db; }
 .dark .docs-sidebar { border-color: #303846; background: #0d1420; }
 .dark .docs-brand strong, .dark .docs-nav a:hover, .dark .docs-outline h2 { color: #f3f4f6; }
-.dark .docs-brand span, .dark .docs-nav h2 { color: #8f9bad; }
-.dark .docs-search-button { border-color: #374151; background: #172033; color: #9ca3af; }
+.dark .docs-brand span { color: #8f9bad; }
 .dark .docs-nav a { color: #aeb8c8; }
 .dark .docs-nav a:hover { background: #172033; }
 .dark .docs-nav a.active { background: #172554; color: #93c5fd; }
@@ -376,13 +277,6 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKeydown))
 .dark .docs-article :deep(th), .dark .docs-article :deep(td) { border-color: #3b4657; }
 .dark .docs-article :deep(th) { background: #202b3b; color: #f3f4f6; }
 .dark .docs-pagination a { border-color: #374151; }
-.dark .docs-search-dialog { border-color: #374151; background: #111827; }
-.dark .docs-search-input-wrap { border-color: #374151; }
-.dark .docs-search-input-wrap input, .dark .docs-search-results strong { color: #f3f4f6; }
-.dark .docs-search-results a { color: #c5cedb; }
-.dark .docs-search-input-wrap, .dark .docs-search-input-wrap button, .dark .docs-search-results a > svg, .dark .docs-search-results small, .dark .docs-empty-search { color: #94a3b8; }
-.dark .docs-search-input-wrap .docs-search-close { border-color: #374151; }
-.dark .docs-search-results a:hover { background: #1f2937; }
 @media (max-width: 1180px) {
   .docs-shell { grid-template-columns: 220px minmax(0, 1fr); }
   .docs-outline { display: none; }
