@@ -1280,3 +1280,67 @@ func TestForwardAsRawChatCompletions_RestoresMappedResponseModel(t *testing.T) {
 		}
 	}
 }
+
+func TestEnsureDoubaoTrailingAssistantPartial(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		model       string
+		body        string
+		wantPartial string
+		wantChanged bool
+	}{
+		{
+			name:        "豆包模型末尾 assistant 补 partial",
+			model:       "doubao-seed-2-1-lite-260915",
+			body:        `{"messages":[{"role":"user","content":"hi"},{"role":"assistant","content":"你好，"}]}`,
+			wantPartial: "messages.1.partial",
+			wantChanged: true,
+		},
+		{
+			name:        "模型前缀大小写不敏感",
+			model:       "Doubao-Seed-2-1-Pro",
+			body:        `{"messages":[{"role":"assistant","content":"x"}]}`,
+			wantPartial: "messages.0.partial",
+			wantChanged: true,
+		},
+		{
+			name:        "客户端已带 partial 时保持原样",
+			model:       "doubao-seed-2-1-lite-260915",
+			body:        `{"messages":[{"role":"user","content":"hi"},{"role":"assistant","content":"x","partial":false}]}`,
+			wantChanged: false,
+		},
+		{
+			name:        "末尾是 user 不改",
+			model:       "doubao-seed-2-1-lite-260915",
+			body:        `{"messages":[{"role":"assistant","content":"x"},{"role":"user","content":"hi"}]}`,
+			wantChanged: false,
+		},
+		{
+			name:        "非豆包模型不改",
+			model:       "glm-5.3",
+			body:        `{"messages":[{"role":"assistant","content":"x"}]}`,
+			wantChanged: false,
+		},
+		{
+			name:        "messages 为空或不是数组不改",
+			model:       "doubao-seed-2-1-lite-260915",
+			body:        `{"messages":{"role":"assistant","content":"x"}}`,
+			wantChanged: false,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got, err := ensureDoubaoTrailingAssistantPartial([]byte(tt.body), tt.model)
+			require.NoError(t, err)
+			if !tt.wantChanged {
+				require.JSONEq(t, tt.body, string(got))
+				return
+			}
+			require.True(t, gjson.GetBytes(got, tt.wantPartial).Bool())
+		})
+	}
+}

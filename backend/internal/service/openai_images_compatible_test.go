@@ -149,3 +149,25 @@ func TestCompatibleImagesNativeAccountsRejectGeminiBeforeForwarding(t *testing.T
 		}
 	}
 }
+
+func TestCompatibleImagesDoubaoSeedreamModels(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	model := "doubao-seedream-5-5-261028"
+	body := []byte(fmt.Sprintf(`{"model":%q,"prompt":"draw"}`, model))
+	c, _ := gin.CreateTestContext(httptest.NewRecorder())
+	c.Request = httptest.NewRequest(http.MethodPost, openAIImagesGenerationsEndpoint, bytes.NewReader(body))
+	parsed, err := (&OpenAIGatewayService{}).ParseOpenAIImagesRequest(c, body)
+	require.NoError(t, err)
+	require.Equal(t, OpenAIImagesCapabilityAPIKey, parsed.RequiredCapability)
+	require.True(t, (&Account{Platform: PlatformOpenAI, Type: AccountTypeAPIKey}).SupportsOpenAIImageCapability(parsed.RequiredCapability))
+	for _, typ := range []string{AccountTypeOAuth, AccountTypeSetupToken} {
+		require.False(t, (&Account{Platform: PlatformOpenAI, Type: typ}).SupportsOpenAIImageCapability(parsed.RequiredCapability))
+	}
+	require.False(t, isOpenAIImageGenerationModel(model), "seedream must not enter native Responses normalization")
+
+	for _, rejected := range []string{"doubao-seed-2-1-lite-260915", "seedream-5-5", "doubao-embedding-vision"} {
+		t.Run("reject_"+rejected, func(t *testing.T) {
+			require.ErrorContains(t, validateCompatibleImagesModel(rejected), "images endpoint requires an image model")
+		})
+	}
+}

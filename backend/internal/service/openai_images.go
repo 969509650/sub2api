@@ -589,8 +589,21 @@ func isGeminiCompatibleImageModel(model string) bool {
 		(strings.HasSuffix(model, "-image") || strings.Contains(model, "-image-"))
 }
 
+// isDoubaoSeedreamImageModel 识别火山方舟 Seedream 生图模型（如 doubao-seedream-5-5-261028）。
+// 与 Gemini 一样只能由 API Key 账号经上游 /v1/images/generations 透传，不参与 GPT 生图的
+// 原生工具转换、定价回退与限流策略，因此同样不并入 isOpenAIImageGenerationModel。
+func isDoubaoSeedreamImageModel(model string) bool {
+	model = strings.ToLower(strings.TrimSpace(model))
+	return strings.HasPrefix(model, doubaoModelPrefix+"seedream-")
+}
+
+// isAPIKeyOnlyCompatibleImageModel 汇总只允许 API Key 账号透传的第三方生图模型。
+func isAPIKeyOnlyCompatibleImageModel(model string) bool {
+	return isGeminiCompatibleImageModel(model) || isDoubaoSeedreamImageModel(model)
+}
+
 func validateCompatibleImagesModel(model string) error {
-	if isGeminiCompatibleImageModel(model) {
+	if isAPIKeyOnlyCompatibleImageModel(model) {
 		return nil
 	}
 	return validateOpenAIImagesModel(model)
@@ -599,7 +612,7 @@ func validateCompatibleImagesModel(model string) error {
 // RequiredCapabilityForModel also applies the API-key-only fence when channel
 // mapping introduces a compatible provider model after request parsing.
 func (req *OpenAIImagesRequest) RequiredCapabilityForModel(model string) OpenAIImagesCapability {
-	if isGeminiCompatibleImageModel(model) {
+	if isAPIKeyOnlyCompatibleImageModel(model) {
 		return OpenAIImagesCapabilityAPIKey
 	}
 	return req.RequiredCapability
@@ -621,7 +634,7 @@ func classifyOpenAIImagesCapability(req *OpenAIImagesRequest) OpenAIImagesCapabi
 	if req == nil {
 		return OpenAIImagesCapabilityNative
 	}
-	if isGeminiCompatibleImageModel(req.Model) {
+	if isAPIKeyOnlyCompatibleImageModel(req.Model) {
 		return OpenAIImagesCapabilityAPIKey
 	}
 	if req.ExplicitModel || req.ExplicitSize {

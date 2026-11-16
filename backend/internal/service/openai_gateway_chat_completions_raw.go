@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -113,6 +114,11 @@ func (s *OpenAIGatewayService) forwardAsRawChatCompletionsWithStartTime(
 	if normalizedBody, normalized := NormalizeGLMOpenAIReasoningEffort(upstreamBody, upstreamModel); normalized {
 		upstreamBody = normalizedBody
 	}
+	partialBody, partialErr := ensureDoubaoTrailingAssistantPartial(upstreamBody, upstreamModel)
+	if partialErr != nil {
+		return nil, fmt.Errorf("mark doubao trailing assistant message as partial: %w", partialErr)
+	}
+	upstreamBody = partialBody
 
 	// 4. Apply OpenAI fast policy on the CC body
 	updatedBody, policyErr := s.applyOpenAIFastPolicyToBody(ctx, account, upstreamModel, upstreamBody)
@@ -474,6 +480,33 @@ func (s *OpenAIGatewayService) streamRawChatCompletions(
 	}
 
 	return resultWithUsage(), nil
+}
+
+// doubaoModelPrefix 是火山方舟（豆包）模型 ID 的统一前缀。
+const doubaoModelPrefix = "doubao-"
+
+// ensureDoubaoTrailingAssistantPartial 处理方舟的前缀续写约定：messages 最后一条是
+// assistant 时，方舟要求显式带 partial=true，否则返回 400 MissingParameter。
+// OpenAI 协议没有该字段，客户端（如 Open WebUI 的“继续生成”）不会携带，
+// 所以在直转前按上游模型名补齐。已带 partial 的请求保持原样，由客户端决定语义。
+func ensureDoubaoTrailingAssistantPartial(body []byte, upstreamModel string) ([]byte, error) {
+	if !strings.HasPrefix(strings.ToLower(strings.TrimSpace(upstreamModel)), doubaoModelPrefix) {
+		return body, nil
+	}
+	messagesResult := gjson.GetBytes(body, "messages")
+	if !messagesResult.IsArray() {
+		return body, nil
+	}
+	messages := messagesResult.Array()
+	if len(messages) == 0 {
+		return body, nil
+	}
+	lastIndex := len(messages) - 1
+	last := messages[lastIndex]
+	if last.Get("role").String() != "assistant" || last.Get("partial").Exists() {
+		return body, nil
+	}
+	return sjson.SetBytes(body, "messages."+strconv.Itoa(lastIndex)+".partial", true)
 }
 
 // ensureOpenAIChatStreamUsage 确保 raw Chat Completions 流式请求会让上游返回 usage。
